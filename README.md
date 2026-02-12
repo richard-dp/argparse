@@ -69,12 +69,12 @@ var myString *string = parser.String("s", "string", ...)
 Positional arguments can be used like this `$ progname value1`.
 See [Basic Option Structure](#basic-option-structure) and [Positionals](#positionals).
 ```go
-var myString *string = parser.StringPositional(nil)
-var myString *string = parser.FilePositional(nil)
-var myString *string = parser.FloatPositional(nil)
-var myString *string = parser.IntPositional(nil)
-var myString *string = parser.SelectorPositional([]string{"a", "b"}, nil)
-var myString1 *string = parser.StringPositional(Options{Default: "beep"})
+var myString *string = parser.StringPositional("pos string 1", nil)
+var myString *string = parser.FilePositional("pos file", nil)
+var myString *string = parser.FloatPositional("pos float", Options{Default: 1.0})
+var myString *string = parser.IntPositional("pos int", Options{Default: 1})
+var myString *string = parser.SelectorPositional("pos selector", Options{Default: "a"}, []string{"a", "b"})
+var myString1 *string = parser.StringPositional("pos string 2"Options{Default: "beep"})
 ```
 
 Selector works same as a string, except that it will only allow specific values.

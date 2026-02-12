@@ -274,14 +274,12 @@ func (o *Command) String(short string, long string, opts *Options) *string {
 }
 
 // See func String documentation
-func (o *Command) StringPositional(opts *Options) *string {
+func (o *Command) StringPositional(name string, opts *Options) *string {
 	if opts == nil {
 		opts = &Options{}
 	}
 	opts.positional = true
 
-	// We supply a long name for documentation and internal logic
-	name := fmt.Sprintf(positionalArgName, o.name, len(o.args))
 	return o.String("", name, opts)
 }
 
@@ -310,14 +308,12 @@ func (o *Command) Int(short string, long string, opts *Options) *int {
 }
 
 // See func Int documentation
-func (o *Command) IntPositional(opts *Options) *int {
+func (o *Command) IntPositional(name string, opts *Options) *int {
 	if opts == nil {
 		opts = &Options{}
 	}
 	opts.positional = true
 
-	// We supply a long name for documentation and internal logic
-	name := fmt.Sprintf(positionalArgName, o.name, len(o.args))
 	return o.Int("", name, opts)
 }
 
@@ -346,14 +342,12 @@ func (o *Command) Float(short string, long string, opts *Options) *float64 {
 }
 
 // See func Float documentation
-func (o *Command) FloatPositional(opts *Options) *float64 {
+func (o *Command) FloatPositional(name string, opts *Options) *float64 {
 	if opts == nil {
 		opts = &Options{}
 	}
 	opts.positional = true
 
-	// We supply a long name for documentation and internal logic
-	name := fmt.Sprintf(positionalArgName, o.name, len(o.args))
 	return o.Float("", name, opts)
 }
 
@@ -387,14 +381,12 @@ func (o *Command) File(short string, long string, flag int, perm os.FileMode, op
 }
 
 // See func File documentation
-func (o *Command) FilePositional(flag int, perm os.FileMode, opts *Options) *os.File {
+func (o *Command) FilePositional(name string, flag int, perm os.FileMode, opts *Options) *os.File {
 	if opts == nil {
 		opts = &Options{}
 	}
 	opts.positional = true
 
-	// We supply a long name for documentation and internal logic
-	name := fmt.Sprintf(positionalArgName, o.name, len(o.args))
 	return o.File("", name, flag, perm, opts)
 }
 
@@ -533,14 +525,12 @@ func (o *Command) Selector(short string, long string, options []string, opts *Op
 }
 
 // See func Selector documentation
-func (o *Command) SelectorPositional(allowed []string, opts *Options) *string {
+func (o *Command) SelectorPositional(name string, allowed []string, opts *Options) *string {
 	if opts == nil {
 		opts = &Options{}
 	}
 	opts.positional = true
 
-	// We supply a long name for documentation and internal logic
-	name := fmt.Sprintf(positionalArgName, o.name, len(o.args))
 	return o.Selector("", name, allowed, opts)
 }
 
@@ -694,7 +684,13 @@ func arguments2Result(result string, arguments []*arg, maxWidth int) string {
 				} else {
 					arg = arg + "    "
 				}
-				arg = arg + "--" + argument.lname
+
+				if argument.opts.positional {
+					arg = arg + argument.lname
+				} else {
+					arg = arg + "--" + argument.lname
+				}
+
 				arg = arg + strings.Repeat(" ", argPadding-len(arg))
 				if argument.opts != nil && argument.opts.Help != "" {
 					arg = addToLastLine(arg, argument.getHelpMessage(), maxWidth, argPadding, true)

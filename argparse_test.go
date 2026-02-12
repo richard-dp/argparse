@@ -2755,7 +2755,7 @@ func TestCommandHelpSetSnameOnly(t *testing.T) {
 func TestCommandPositional(t *testing.T) {
 	testArgs1 := []string{"pos", "heyo"}
 	parser := NewParser("pos", "")
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 
 	if err := parser.Parse(testArgs1); err != nil {
 		t.Error(err.Error())
@@ -2769,7 +2769,23 @@ func TestCommandPositionalOptions(t *testing.T) {
 	testArgs1 := []string{"pos", "heyo"}
 	parser := NewParser("pos", "")
 	validated := false
-	strval := parser.StringPositional(&Options{Validate: func(args []string) error { validated = true; return nil }})
+	strval := parser.StringPositional("positional 1", &Options{Validate: func(args []string) error { validated = true; return nil }})
+
+	if err := parser.Parse(testArgs1); err != nil {
+		t.Error(err.Error())
+	} else if *strval != "heyo" {
+		t.Errorf("Strval did not match expected")
+	} else if !validated {
+		t.Errorf("Validate function not run")
+	}
+}
+
+// Properly test the Options field
+func TestCommandPositionalOptionsIsPositional2(t *testing.T) {
+	testArgs1 := []string{"pos", "heyo"}
+	parser := NewParser("pos", "")
+	validated := false
+	strval := parser.StringPositional("positional 1", &Options{Validate: func(args []string) error { validated = true; return nil }, Required: true})
 
 	if err := parser.Parse(testArgs1); err != nil {
 		t.Error(err.Error())
@@ -2783,7 +2799,7 @@ func TestCommandPositionalOptions(t *testing.T) {
 func TestCommandPositionalUnsatisfied(t *testing.T) {
 	errArgs1 := []string{"pos", "--test1"}
 	parser := NewParser("pos", "")
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 	flag1 := parser.Flag("", "test1", nil)
 
 	if err := parser.Parse(errArgs1); err != nil {
@@ -2801,7 +2817,7 @@ func TestCommandPositionalUnsatisfiedDefault(t *testing.T) {
 	errArgs1 := []string{"pos"}
 	parser := NewParser("pos", "")
 	defval := "defaultation"
-	strval := parser.StringPositional(&Options{Default: defval})
+	strval := parser.StringPositional("positional 1", &Options{Default: defval})
 
 	if err := parser.Parse(errArgs1); err != nil {
 		t.Error(err.Error())
@@ -2813,9 +2829,9 @@ func TestCommandPositionalUnsatisfiedDefault(t *testing.T) {
 func TestCommandPositionals(t *testing.T) {
 	testArgs1 := []string{"posint", "5", "abc", "1.0"}
 	parser := NewParser("posint", "")
-	intval := parser.IntPositional(&Options{Required: false})
-	strval := parser.StringPositional(nil)
-	floatval := parser.FloatPositional(&Options{Default: 1.5})
+	intval := parser.IntPositional("positional 1", &Options{Required: false})
+	strval := parser.StringPositional("positional 2", nil)
+	floatval := parser.FloatPositional("positional 3", &Options{Default: 1.5})
 
 	if err := parser.Parse(testArgs1); err != nil {
 		t.Error(err.Error())
@@ -2831,13 +2847,14 @@ func TestCommandPositionals(t *testing.T) {
 func TestCommandPositionalsErr(t *testing.T) {
 	errArgs1 := []string{"posint", "abc", "abc", "1.0"}
 	parser := NewParser("posint", "")
-	_ = parser.IntPositional(nil)
-	_ = parser.StringPositional(nil)
-	_ = parser.FloatPositional(nil)
+	positional1Name := "positional 1"
+	_ = parser.IntPositional(positional1Name, nil)
+	_ = parser.StringPositional("positional 2", &Options{Required: true})
+	_ = parser.FloatPositional("positional 3", nil)
 
 	if err := parser.Parse(errArgs1); err == nil {
 		t.Error("String argument accepted for integer")
-	} else if err.Error() != "[_positionalArg_posint_1] bad integer value [abc]" {
+	} else if err.Error() != fmt.Sprintf("[%s] bad integer value [abc]", positional1Name) {
 		t.Error(err.Error())
 	}
 }
@@ -2846,8 +2863,8 @@ func TestCommandPositionalsErr(t *testing.T) {
 // Actual I/O during unit tests already covered by TestFileSimple1
 func TestFilePositional(t *testing.T) {
 	parser := NewParser("pos", "")
-	t1 := parser.FilePositional(os.O_RDWR, 0666, nil)
-	t2 := parser.FilePositional(os.O_RDWR, 0666, &Options{Help: "beep!"})
+	t1 := parser.FilePositional("positional 1", os.O_RDWR, 0666, nil)
+	t2 := parser.FilePositional("positional 2", os.O_RDWR, 0666, &Options{Help: "beep!"})
 
 	if t1 == nil {
 		t.Error("File pos was nil")
@@ -2860,7 +2877,7 @@ func TestPos1(t *testing.T) {
 	testArgs1 := []string{"pos", "subcommand1", "-i", "2", "abc"}
 	parser := NewParser("pos", "")
 
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 	com1 := parser.NewCommand("subcommand1", "beep")
 	intval := com1.Int("i", "integer", nil)
 
@@ -2877,7 +2894,7 @@ func TestPos2(t *testing.T) {
 	testArgs1 := []string{"pos", "subcommand1", "a123"}
 	parser := NewParser("pos", "")
 
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 	com1 := parser.NewCommand("subcommand1", "beep")
 	intval := com1.Int("i", "integer", nil)
 
@@ -2894,7 +2911,7 @@ func TestPos3(t *testing.T) {
 	testArgs1 := []string{"pos", "subcommand1", "xyz", "--integer", "3"}
 	parser := NewParser("pos", "")
 
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 	com1 := parser.NewCommand("subcommand1", "beep")
 	intval := com1.Int("i", "integer", nil)
 
@@ -2911,7 +2928,7 @@ func TestPos4(t *testing.T) {
 	testArgs1 := []string{"pos", "abc"}
 	parser := NewParser("pos", "")
 
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 	com1 := parser.NewCommand("subcommand1", "beep")
 	intval := com1.Int("i", "integer", nil)
 
@@ -2947,7 +2964,7 @@ func TestPos6(t *testing.T) {
 	testArgs1 := []string{"pos", "subcommand1", "-i=2", "abc"}
 	parser := NewParser("pos", "")
 
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 	com1 := parser.NewCommand("subcommand1", "beep")
 	intval := com1.Int("i", "integer", nil)
 
@@ -2964,7 +2981,7 @@ func TestPos7(t *testing.T) {
 	testArgs1 := []string{"pos", "beep"}
 	parser := NewParser("pos", "")
 
-	strval := parser.SelectorPositional([]string{"beep"}, &Options{Help: "wow"})
+	strval := parser.SelectorPositional("positional 1", []string{"beep"}, &Options{Help: "wow"})
 
 	if err := parser.Parse(testArgs1); err != nil {
 		t.Error(err.Error())
@@ -2982,11 +2999,11 @@ func TestPos8(t *testing.T) {
 
 	// The precedence of commands is playing a role here.
 	// We should be parsing in root->leaf, left->right order
-	cmd2pos1 := cmd2.StringPositional(nil)
-	progPos := parser.StringPositional(nil)
-	cmd1pos1 := cmd1.StringPositional(nil)
+	cmd2pos1 := cmd2.StringPositional("positional 1", nil)
+	progPos := parser.StringPositional("positional 2", nil)
+	cmd1pos1 := cmd1.StringPositional("positional 3", nil)
 	strval := cmd1.String("s", "str", nil)
-	cmd1pos2 := cmd1.StringPositional(nil)
+	cmd1pos2 := cmd1.StringPositional("positional 4", nil)
 
 	if err := parser.Parse(testArgs1); err != nil {
 		t.Error(err.Error())
@@ -3024,10 +3041,10 @@ func TestPos9(t *testing.T) {
 
 	// The precedence of commands controls which values parsed to where
 	// We should be parsing in root->leaf, left->right order
-	cmd2pos1 := cmd2.StringPositional(nil)
-	progPos := parser.StringPositional(nil)
-	cmd1pos1 := cmd1.StringPositional(nil)
-	cmd1pos2 := cmd1.StringPositional(nil)
+	cmd2pos1 := cmd2.StringPositional("positional 1", nil)
+	progPos := parser.StringPositional("positional 2", nil)
+	cmd1pos1 := cmd1.StringPositional("positional 3", nil)
+	cmd1pos2 := cmd1.StringPositional("positional 4", nil)
 
 	strval := cmd1.String("s", "str", nil)
 	if err := parser.Parse(testArgs1); err != nil {
@@ -3061,7 +3078,7 @@ func TestSubcommandParsed(t *testing.T) {
 	errArgs1 := []string{"pos", "subcommand1"}
 	parser := NewParser("pos", "")
 
-	strval := parser.StringPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
 	com1 := parser.NewCommand("subcommand1", "beep")
 	intval := com1.Int("i", "integer", nil)
 
@@ -3080,12 +3097,12 @@ func TestSubcommandMultiarg(t *testing.T) {
 	errArgs1 := []string{"ma0", "ma1", "ma2", "strval1", "2.0", "5", "1.0"}
 	parser := NewParser("ma0", "")
 
-	strval := parser.StringPositional(nil)
-	floatval1 := parser.FloatPositional(nil)
+	strval := parser.StringPositional("positional 1", nil)
+	floatval1 := parser.FloatPositional("positional 2", nil)
 	com1 := parser.NewCommand("ma1", "beep")
-	intval := com1.IntPositional(nil)
+	intval := com1.IntPositional("positional 3", nil)
 	com2 := com1.NewCommand("ma2", "beep")
-	floatval2 := com2.FloatPositional(nil)
+	floatval2 := com2.FloatPositional("positional 4", nil)
 
 	if err := parser.Parse(errArgs1); err != nil {
 		t.Error(err.Error())
@@ -3124,11 +3141,11 @@ func TestCommandSubcommandPositionals(t *testing.T) {
 		parser := NewParser("pos", "")
 		_ = parser.NewCommand("subcommand1", "")
 		com2 := parser.NewCommand("subcommand2", "")
-		com2.StringPositional(nil)
+		com2.StringPositional("positional 1", nil)
 		com2.Int("i", "integer", nil)
 		com2.Flag("b", "bool", nil)
 		com3 := parser.NewCommand("subcommand3", "")
-		com3.SelectorPositional([]string{"first", "second"}, nil)
+		com3.SelectorPositional("positional 2", []string{"first", "second"}, nil)
 		return parser
 	}
 
@@ -3179,9 +3196,9 @@ func TestPositionalsLessArgumentsThanPositionals(t *testing.T) {
 
 	// The precedence of commands is playing a role here.
 	// We should be parsing in root->leaf, left->right order
-	progPos := parser.StringPositional(nil)
-	cmd1pos1 := cmd1.StringPositional(nil)
-	cmd1pos2 := cmd1.StringPositional(nil)
+	progPos := parser.StringPositional("positional 1", nil)
+	cmd1pos1 := cmd1.StringPositional("positional 2", nil)
+	cmd1pos2 := cmd1.StringPositional("positional 3", nil)
 	strval := cmd1.String("s", "str", nil)
 
 	if err := parser.Parse(testArgs1); err != nil {
@@ -3209,10 +3226,10 @@ func TestPositionalDefaults(t *testing.T) {
 	testArgs1 := []string{"pos"}
 	parser := NewParser("pos", "")
 
-	pos1 := parser.StringPositional(&Options{Default: "pos1"})
-	pos2 := parser.IntPositional(&Options{Default: 2})
-	pos3 := parser.FloatPositional(&Options{Default: 3.3})
-	pos4 := parser.SelectorPositional([]string{"notallowed", "pos4"}, &Options{Default: "pos4"})
+	pos1 := parser.StringPositional("positional 1", &Options{Default: "pos1"})
+	pos2 := parser.IntPositional("positional 2", &Options{Default: 2})
+	pos3 := parser.FloatPositional("positional 3", &Options{Default: 3.3})
+	pos4 := parser.SelectorPositional("positional 4", []string{"notallowed", "pos4"}, &Options{Default: "pos4"})
 
 	if err := parser.Parse(testArgs1); err != nil {
 		t.Error(err.Error())
