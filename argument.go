@@ -460,36 +460,51 @@ func (o *arg) name() string {
 	return name
 }
 
-func (o *arg) usage() string {
-	var result string
-	result = o.name()
-	switch o.result.(type) {
-	case *bool:
-		break
-	case *int:
-		isFlagCounter := !o.unique && o.size == 1
-		if !isFlagCounter {
-			result = result + " <integer>"
-		}
-	case *float64:
-		result = result + " <float>"
-	case *string:
-		if o.selector != nil {
-			result = result + " (" + strings.Join(*o.selector, "|") + ")"
-		} else {
-			result = result + " \"<value>\""
-		}
-	case *os.File:
-		result = result + " <file>"
-	case *[]string:
-		result = result + " \"<value>\"" + " [" + result + " \"<value>\" ...]"
-	default:
-		break
-	}
+func resolveUsageBrackets(o *arg) (rune, rune) {
 	if o.opts == nil || o.opts.Required == false {
-		result = "[" + result + "]"
+		return '[', ']'
 	}
-	return result
+	return '<', '>'
+}
+
+func (o *arg) usage() string {
+	var result strings.Builder
+	result.Grow(80)
+
+	open, close := resolveUsageBrackets(o)
+
+	result.WriteRune(open)
+	result.WriteString(o.name())
+	if o.opts == nil || !o.opts.positional {
+		switch o.result.(type) {
+		case *bool:
+			break
+		case *int:
+			isFlagCounter := !o.unique && o.size == 1
+			if !isFlagCounter {
+				result.WriteString(" (integer)")
+			}
+		case *float64:
+			result.WriteString(" (float)")
+		case *string:
+			if o.selector != nil {
+				values := fmt.Sprintf(" (%s)", strings.Join(*o.selector, "|"))
+				result.WriteString(values)
+			} else {
+				result.WriteString(" \"(value)\"")
+			}
+		case *os.File:
+			result.WriteString(" (file)")
+		case *[]string:
+			values := fmt.Sprintf(" \"(value)\" [%s \"(value)\" ...]", o.name())
+			result.WriteString(values)
+		default:
+			break
+		}
+	}
+	result.WriteRune(close)
+
+	return result.String()
 }
 
 func (o *arg) getHelpMessage() string {
