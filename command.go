@@ -58,7 +58,6 @@ func (o *Command) addArg(a *arg) error {
 			return fmt.Errorf("argument type cannot be positional")
 		}
 		a.sname = ""
-		a.opts.Required = false
 		a.size = 1 // We could allow other sizes in the future
 	}
 	o.args = append(o.args, a)
@@ -97,27 +96,49 @@ func (o *Command) parseSubCommands(args *[]string) error {
 // Positionals will consume any remaining values,
 //     disregarding if they have dashes or equals signs or other "delims".
 func (o *Command) parsePositionals(inputArgs *[]string) error {
+	var prevPosArg *arg = nil
+
 	for _, oarg := range o.args {
 		// Two-stage parsing, this is the second stage
 		if !oarg.GetPositional() {
 			continue
 		}
+
+		if prevPosArg != nil {
+			if oarg.opts.Required && !prevPosArg.opts.Required {
+				return fmt.Errorf("Required positional arguments may not follow optional positional arguments: [%s] <%s>",
+					prevPosArg.name(),
+					oarg.name(),
+				)
+			}
+		}
+		prevPosArg = oarg
+
+		var argPtr *string = nil
 		for j := 0; j < len(*inputArgs); j++ {
-			arg := (*inputArgs)[j]
-			if arg == "" {
+			argPtr = &(*inputArgs)[j]
+			if *argPtr == "" {
 				continue
 			}
-			if err := oarg.parsePositional(arg); err != nil {
+			if err := oarg.parsePositional(*argPtr); err != nil {
 				return err
 			}
 			oarg.reduce(j, inputArgs)
 			break // Positionals can only occur once
 		}
+
 		// positional was unsatisfiable, use the default
 		if !oarg.parsed {
 			err := oarg.setDefault()
 			if err != nil {
 				return err
+			}
+
+			if oarg.opts.Required {
+				err = fmt.Errorf("[%s] is required", oarg.name())
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

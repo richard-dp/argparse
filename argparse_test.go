@@ -3248,3 +3248,111 @@ func TestPositionalDefaults(t *testing.T) {
 		t.Errorf(`*pos4 expected "pos4", but got "%s"`, *pos4)
 	}
 }
+
+func TestPositionalRequired1(t *testing.T) {
+	var parser *Parser
+	var posValue *string
+
+	posName := "positional 1"
+
+	newParser := func () {
+		parser = NewParser("pos", "")
+		posValue = parser.StringPositional(posName, &Options{Required: true})
+	}
+
+	newParser()
+	
+	expectedError := fmt.Sprintf("[%s] is required", posName)
+
+	testArgs1 := []string{"pos"}
+	err := parser.Parse(testArgs1)
+	if err == nil || err.Error() != expectedError {
+		failMessage := "expected error, but got nil"
+		if err != nil {
+			failMessage = fmt.Sprintf(`expected "%s", but got "%s"`, expectedError, err.Error())
+		}
+		t.Error(failMessage)
+	}
+
+	posArg := "pos arg 1"
+	testArgs2 := []string{"pos", posArg}
+	newParser()
+	
+	err = parser.Parse(testArgs2)
+	if err != nil {
+		t.Errorf(`expected nil, but got "%s"`, err.Error())
+	}
+	if *posValue != posArg {
+		t.Errorf(`expected "%s", but got "%s"`, posArg, *posValue)
+	}
+}
+
+func TestPositionalRequired2(t *testing.T) {
+	testArgs1 := []string{"pos"}
+	parser := NewParser("pos", "")
+
+	pos1Name := "positional 1"
+	parser.StringPositional(pos1Name, nil)
+
+	pos2Name := "positional 2"
+	parser.StringPositional(pos2Name, &Options{Required: true})
+
+	expectedError := fmt.Sprintf("Required positional arguments may not follow optional positional arguments: [%s] <%s>", pos1Name, pos2Name)
+
+	err := parser.Parse(testArgs1)
+	if err == nil || err.Error() != expectedError {
+		failMessage := "expected error, but got nil"
+		if err != nil {
+			failMessage = fmt.Sprintf(`expected "%s", but got "%s"`, expectedError, err.Error())
+		}
+		t.Error(failMessage)
+	}
+}
+
+func TestPositionalRequired3(t *testing.T) {
+	var parser *Parser
+	var pos1Value *string
+	var pos2Value *string
+
+	pos1Name := "positional 1"
+	pos2Name := "positional 2"
+	pos2Default := "default"
+	newParser := func () {
+		parser = NewParser("pos", "")
+
+		pos1Value = parser.StringPositional(pos1Name, &Options{Required: true})
+		pos2Value = parser.StringPositional(pos2Name, &Options{Default: pos2Default})
+	}
+	
+	testArgs1 := []string{"pos"}
+	newParser()
+
+	expectedError := fmt.Sprintf("[%s] is required", pos1Name)
+
+	err := parser.Parse(testArgs1)
+	if err == nil || err.Error() != expectedError {
+		failMessage := "expected error, but got nil"
+		if err != nil {
+			failMessage = fmt.Sprintf(`expected "%s", but got "%s"`, expectedError, err.Error())
+		}
+		t.Error(failMessage)
+	}
+	
+	posArg := "arg 1"
+	testArgs2 := []string{"pos", posArg}
+	newParser()
+	
+	fmt.Printf("%s", strings.Join(testArgs2, ", "))
+
+	err = parser.Parse(testArgs2)
+	if err != nil {
+		t.Errorf(`expected nil, but got "%s"`, err.Error())
+	}
+
+	if *pos1Value != posArg {
+		t.Errorf(`expected "%s", but got "%s"`, posArg, *pos1Value)
+	}
+	if *pos2Value != pos2Default {
+		t.Errorf(`expected "", but got "%s"`, *pos1Value)
+	}
+}
