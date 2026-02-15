@@ -3356,3 +3356,89 @@ func TestPositionalRequired3(t *testing.T) {
 		t.Errorf(`expected "", but got "%s"`, *pos1Value)
 	}
 }
+
+func TestPositionalValidation1(t *testing.T) {
+	var parser *Parser
+	var pos1Value *string
+	var pos2Value *string
+
+	pos1Name := "positional 1"
+	pos2Name := "positional 2"
+	pos2Default := "default"
+
+	min3Chars := func (args []string) error {
+		arg := &args[0]
+		if len(*arg) < 3 {
+			return fmt.Errorf(`Minimum 3 characters required. Received: "%s"`, *arg)
+		}
+		return nil
+	}
+
+	newParser := func () {
+		parser = NewParser("pos", "")
+
+		pos1Value = parser.StringPositional(pos1Name, &Options{Required: true, Validate: min3Chars })
+		pos2Value = parser.StringPositional(pos2Name, &Options{Default: pos2Default, Validate: min3Chars})
+	}
+	
+	// Ensure validation error occurs on required positional
+	badPosArg := "ar"
+	expectedError := fmt.Sprintf(`Minimum 3 characters required. Received: "%s"`, badPosArg)
+	testArgs1 := []string{"pos", badPosArg}
+	newParser()
+
+	err := parser.Parse(testArgs1)
+	if err == nil || err.Error() != expectedError {
+		failMessage := "expected error, but got nil"
+		if err != nil {
+			failMessage = fmt.Sprintf(`expected "%s", but got "%s"`, expectedError, err.Error())
+		}
+		t.Error(failMessage)
+	}
+	
+	// Ensure validation passes on required positional and is ignored when optional positional is not passed in
+	goodPosArg := "arg 1"
+	testArgs2 := []string{"pos", goodPosArg}
+	newParser()
+
+	err = parser.Parse(testArgs2)
+	if err != nil {
+		t.Errorf(`expected nil, but got "%s"`, err.Error())
+	}
+
+	if *pos1Value != goodPosArg {
+		t.Errorf(`expected "%s", but got "%s"`, goodPosArg, *pos1Value)
+	}
+	if *pos2Value != pos2Default {
+		t.Errorf(`expected "", but got "%s"`, *pos2Value)
+	}
+	
+	// Ensure validation passes on required positional and errors when optional positional is passed in
+	testArgs3 := []string{"pos", goodPosArg, badPosArg}
+	newParser()
+	
+	err = parser.Parse(testArgs3)
+	if err == nil || err.Error() != expectedError {
+		failMessage := "expected error, but got nil"
+		if err != nil {
+			failMessage = fmt.Sprintf(`expected "%s", but got "%s"`, expectedError, err.Error())
+		}
+		t.Error(failMessage)
+	}
+	
+	// Ensure validation passes on required positional and optional positional
+	testArgs4 := []string{"pos", goodPosArg, goodPosArg}
+	newParser()
+	
+	err = parser.Parse(testArgs4)
+	if err != nil {
+		t.Errorf(`expected nil, but got "%s"`, err.Error())
+	}
+
+	if *pos1Value != goodPosArg {
+		t.Errorf(`expected "%s", but got "%s"`, goodPosArg, *pos1Value)
+	}
+	if *pos2Value != goodPosArg {
+		t.Errorf(`expected "%s", but got "%s"`, goodPosArg, *pos2Value)
+	}
+}

@@ -422,7 +422,18 @@ func (o *arg) parseSomeType(args []string, argCount int) error {
 }
 
 func (o *arg) parsePositional(arg string) error {
-	if err := o.parse([]string{arg}, 1); err != nil {
+
+	err := error(nil)
+	args := []string{arg}
+
+	if o.opts.Validate != nil {
+		err := o.opts.Validate(args)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = o.parse(args, 1); err != nil {
 		return err
 	}
 
