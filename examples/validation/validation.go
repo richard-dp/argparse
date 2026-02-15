@@ -7,10 +7,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/akamensky/argparse"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/richard-dp/argparse"
 )
 
 // An example that splits one or more strings based on the passed separator and returns the first n entries

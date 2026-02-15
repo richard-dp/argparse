@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/akamensky/argparse"
-	"github.com/akamensky/argparse/examples/commands-advanced/zoo"
 	"log"
 	"os"
+
+	"github.com/richard-dp/argparse"
+	"github.com/richard-dp/argparse/examples/commands-advanced/zoo"
 )
 
 func main() {
