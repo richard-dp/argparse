@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/richard-dp/argparse"
+	"github.com/richard-dp/argparse/v2"
 )
 
 // Run this as `go run commands.go [start|stop]`

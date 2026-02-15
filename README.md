@@ -13,7 +13,7 @@ Which is where the name of this package comes from.
 To install and start using argparse simply do:
 
 ```
-$ go get -u -v github.com/richard-dp/argparse
+$ go get -u -v github.com/richard-dp/argparse/v2
 ```
 
 You are good to go to write your first command line tool!

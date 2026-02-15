@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/richard-dp/argparse"
+	"github.com/richard-dp/argparse/v2"
 )
 
 // An example that splits one or more strings based on the passed separator and returns the first n entries

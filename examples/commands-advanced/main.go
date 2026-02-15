@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/richard-dp/argparse"
-	"github.com/richard-dp/argparse/examples/commands-advanced/zoo"
+	"github.com/richard-dp/argparse/v2"
+	"github.com/richard-dp/argparse/v2/examples/commands-advanced/zoo"
 )
 
 func main() {
