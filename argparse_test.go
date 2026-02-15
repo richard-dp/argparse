@@ -3341,8 +3341,6 @@ func TestPositionalRequired3(t *testing.T) {
 	posArg := "arg 1"
 	testArgs2 := []string{"pos", posArg}
 	newParser()
-	
-	fmt.Printf("%s", strings.Join(testArgs2, ", "))
 
 	err = parser.Parse(testArgs2)
 	if err != nil {
@@ -3353,7 +3351,7 @@ func TestPositionalRequired3(t *testing.T) {
 		t.Errorf(`expected "%s", but got "%s"`, posArg, *pos1Value)
 	}
 	if *pos2Value != pos2Default {
-		t.Errorf(`expected "", but got "%s"`, *pos1Value)
+		t.Errorf(`expected "", but got "%s"`, *pos2Value)
 	}
 }
 
