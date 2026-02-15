@@ -1,6 +1,6 @@
 # Golang argparse
 
-[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/akamensky) [![Go Reference](https://pkg.go.dev/badge/github.com/akamensky/argparse.svg)](https://pkg.go.dev/github.com/akamensky/argparse) [![Go Report Card](https://goreportcard.com/badge/github.com/akamensky/argparse)](https://goreportcard.com/report/github.com/akamensky/argparse) [![Coverage Status](https://coveralls.io/repos/github/akamensky/argparse/badge.svg?branch=master)](https://coveralls.io/github/akamensky/argparse?branch=master) [![Build Status](https://travis-ci.org/akamensky/argparse.svg?branch=master)](https://travis-ci.org/akamensky/argparse)
+Forked [akamensky/argparser](https://github.com/akamensky/argparse) as it doesn't appear to be maintaned anymore
 
 Let's be honest -- Go's standard command line arguments parser `flag` terribly sucks. 
 It cannot come anywhere close to the Python's `argparse` module. This is why this project exists.
@@ -193,7 +193,7 @@ There are a few caveats (or more like design choices) to know about:
 * If not convenient shorthand argument can be completely skipped by passing empty string `""` as first argument
 * Shorthand arguments ONLY for `parser.Flag()` and  `parser.FlagCounter()` can be combined into single argument same as `ps -aux`, `rm -rf` or `lspci -vvk` 
 * Long arguments must be specified and cannot be empty. They are prepended with double dash `"--"`
-* You cannot define two same arguments. Only first one will be used. For example doing `parser.Flag("t", "test", nil)` followed by `parser.String("t", "test2", nil)` will not work as second `String` argument will be ignored (note that both have `"t"` as shorthand argument). However since it is case-sensitive library, you can work arounf it by capitalizing one of the arguments
+* You cannot define two same arguments. Only first one will be used. For example doing `parser.Flag("t", "test", nil)` followed by `parser.String("t", "test2", nil)` will not work as second `String` argument will be ignored (note that both have `"t"` as shorthand argument). However since it is a case-sensitive library, you can work around it by capitalizing one of the arguments
 * There is a pre-defined argument for `-h|--help`, so from above attempting to define any argument using `h` as shorthand will fail
 * `parser.Parse()` returns error in case of something going wrong, but it is not expected to cover ALL cases
 * Any arguments that left un-parsed will be regarded as error
@@ -201,7 +201,8 @@ There are a few caveats (or more like design choices) to know about:
 ##### Positionals
 * `Positional` args have a set of effects and conditions:
   * Always parsed after subcommands and non-positional args
-  * Always set Required=False
+  * ~~Always set Required=False~~
+  * Optional positionals may not be defined before required positional arguments
   * Default is only used if the command or subcommand owning the arg `Happened`
   * Parsed in Command root->leaf left->right order (breadth-first)
 	* Top level cmd consumes as many positionals as it can, from left to right
@@ -228,3 +229,5 @@ as the the library must stick with backward compatibility promise!
 #### Acknowledgments
 
 Thanks to Python developers for making a great `argparse` which inspired this package to match for greatness of Go
+
+Thanks to [@akamensky](@akamensky) for providing a good base which I hope to continue improving
